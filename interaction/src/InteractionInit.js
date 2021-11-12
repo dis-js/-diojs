@@ -4,30 +4,32 @@ class InteractionInit extends BaseJob {
     async handle(client) {
         this.check();
 
-        const viewInteractions = Util.getFilenames("App/Interaction");
-        const interactions = this.interactionNeed();
+        const interactionRegistered = this.interactionRegistered();
+        const interactions = Util.getFiles("App/Interaction", interactionRegistered).map((i) => require(i));
 
         const guilds = await client.guilds.fetch();
 
         guilds.forEach(async (guild) => {
             const options = App.config.discord.interactions.filter((i) => i.id === guild.id)[0];
             guild = await client.guilds.fetch(guild.id);
-            this.remove(viewInteractions, guild, options);
-            this.create(interactions, guild, options);
+            await this.remove(interactionRegistered, guild, options);
+            await this.create(interactions, guild, options);
         });
 
         console.log("[INTERACTION] - Interaction refreshed");
     }
 
+    // Дописать
     check() {}
 
-    interactionNeed() {
+    // Переписать
+    interactionRegistered() {
         const listenerInteraction = Util.defaultRequire(Util.getFiles("App/Listeners", ["Interaction"]))[0];
         if (listenerInteraction.all) return Util.getFilenames("App/Jobs/Interaction");
         const jobInteractions = Util.getFilenames("App/Jobs/Interaction");
-        const viewInteractions = Util.getFiles("App/Interaction").map((i) => require(i));
-        const need = viewInteractions.filter((i) => jobInteractions.includes(this.rename(i)));
-        return need.filter((i) => listenerInteraction.actions.includes(this.rename(i)));
+        const viewInteractions = Util.getFilenames("App/Interaction");
+        const need = viewInteractions.filter((i) => jobInteractions.includes(i));
+        return need.filter((i) => listenerInteraction.actions.includes(i));
     }
 
     async remove(viewInteractions, guild, options) {
