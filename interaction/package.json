@@ -1,0 +1,4 @@
+{
+    "name": "@diojs/interaction",
+    "main": "./src/index.js"
+}
